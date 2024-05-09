@@ -1,0 +1,89 @@
+import pygame
+import random
+
+# 初始化pygame
+pygame.init()
+
+# 设置屏幕大小
+screen_width = 800
+screen_height = 600
+screen = pygame.display.set_mode((screen_width, screen_height))
+
+# 设置游戏标题和计时器
+pygame.display.set_caption("Meteor Dodge Game")
+clock = pygame.time.Clock()
+
+# 飞船类
+class Player(object):
+    def __init__(self):
+        self.image = pygame.image.load('spaceship.png')
+        self.x = 350
+        self.y = 500
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+
+    def draw(self):
+        screen.blit(self.image, (self.x, self.y))
+
+    def move(self, direction):
+        if direction == "left":
+            self.x -= 5
+        elif direction == "right":
+            self.x += 5
+
+        # 确保飞船不会离开屏幕
+        self.x = max(self.x, 0)
+        self.x = min(self.x, screen_width - self.width)
+
+# 陨石类
+class Meteor(object):
+    def __init__(self):
+        self.x = random.randrange(0, screen_width - 30)
+        self.y = 0
+        self.speed = random.randrange(4, 10)
+        self.image = pygame.image.load('meteor.png')
+
+    def fall(self):
+        self.y += self.speed
+
+    def draw(self):
+        screen.blit(self.image, (self.x, self.y))
+
+# 游戏循环
+running = True
+player = Player()
+meteors = []
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player.move("left")
+    if keys[pygame.K_RIGHT]:
+        player.move("right")
+
+    screen.fill((0, 0, 0))  # 清屏并填充背景
+
+    player.draw()
+
+    if random.randint(1, 20) == 1:
+        meteors.append(Meteor())
+
+    for meteor in meteors:
+        meteor.fall()
+        meteor.draw()
+        if meteor.y > screen_height:
+            meteors.remove(meteor)
+        # 检查陨石是否击中飞船
+        if player.x < meteor.x < player.x + player.width and player.y < meteor.y < player.y + player.height:
+            print("Game Over!")
+            running = False
+
+    pygame.display.update()
+    clock.tick(60)
+
+pygame.quit()
+
